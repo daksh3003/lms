@@ -2,25 +2,19 @@
 import React from 'react'
 import {z} from 'zod';
 import { zodResolver} from '@hookform/resolvers/zod';
-import {Controller, DefaultValues, FieldValues, Form, SubmitHandler, useForm, UseFormReturn} from 'react-hook-form';
+import {Controller, DefaultValues, FieldValues, Path, SubmitHandler, useForm, UseFormReturn} from 'react-hook-form';
 
 
 import { Button } from "@/components/ui/button"
+
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import {
   InputGroup,
@@ -29,6 +23,8 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group"
 import Link from 'next/link';
+import FileUpload from './FileUpload';
+import { FIELD_NAMES, FIELD_TYPES } from '@/app/constants';
 
  interface Props<T extends FieldValues>{
   schema:z.ZodType<T>;
@@ -58,70 +54,48 @@ const AuthForm = <T extends FieldValues>({type,schema,defaultValues,onSubmit}: P
         {isSignIn ? 'Access the vast library of books and manage your account.' : 'Join us today and unlock a world of knowledge!'}
       </p>
     <Form {... form}>
-        <form  onSubmit={form.handleSubmit(handleSubmit)} className='space-y-8 w-full'>\
+        <form  onSubmit={form.handleSubmit(handleSubmit)} className='space-y-8 w-full'>
 
 
 
-          {object.keys(defaultValues).map((key) => (
-            
-          )
-            }
-          <FieldGroup>
-            <Controller
-              name={"title" as any}
+{Object.keys(defaultValues).map((field) => (
+            <FormField
+              key={field}
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-rhf-demo-title">
-                    Bug Title
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="form-rhf-demo-title"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Login button not working on mobile"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
+              name={field as Path<T>}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="capitalize">
+                    {FIELD_NAMES[field.name as keyof typeof FIELD_NAMES]}
+                  </FormLabel>
+                  <FormControl>
+                    {field.name === "universityCard" ? (
+                      <FileUpload
+                        type="image"
+                        accept="image/*"
+                        placeholder="Upload your ID"
+                        folder="ids"
+                        variant="dark"
+                        onFileChange={field.onChange}
+                      />
+                    ) : (
+                      <Input
+                        required
+                        type={
+                          FIELD_TYPES[field.name as keyof typeof FIELD_TYPES]
+                        }
+                        {...field}
+                        className="form-input"
+                      />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            <Controller
-              name={"description" as any}
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-rhf-demo-description">
-                    Description
-                  </FieldLabel>
-                  <InputGroup>
-                    <InputGroupTextarea
-                      {...field}
-                      id="form-rhf-demo-description"
-                      placeholder="I'm having an issue with the login button on mobile."
-                      rows={6}
-                      className="min-h-24 resize-none"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    <InputGroupAddon align="block-end">
-                      <InputGroupText className="tabular-nums">
-                        {(field.value?.length || 0)}/100
-                      </InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                  <FieldDescription>
-                    Include steps to reproduce, expected behavior, and what
-                    actually happened.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
+          ))}
+
+          <Button type='submit' className='form-btn'> {isSignIn ? "Sign In" : "Sign UP"}</Button>
         </form>
     </Form>
     <p className='text-center text-base font-medium'>
